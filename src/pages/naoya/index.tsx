@@ -3,7 +3,6 @@ import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   useDisclosure,
   useToast,
-  Badge,
   AlertDialog,
   AlertDialogBody,
   AlertDialogContent,
@@ -146,19 +145,32 @@ export default function TodoListPage() {
       completionDate: new Date(todoForm.completionDate),
       status: todoForm.status,
     };
-    const newTodo: TodoType = await fetch(url, {
+    await fetch(url, {
       method: "POST",
       body: JSON.stringify(params),
-    }).then((r) => r.json());
-    setTodoList((prev) => [newTodo, ...prev]);
-    setTodoForm(defaultFormValue);
-    createdToast({
-      title: "Todoを登録しました",
-      description: "",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+    })
+      .then(async (r) => {
+        const newTodo: TodoType = await r.json();
+        setTodoList((prev) => [newTodo, ...prev]);
+        setTodoForm(defaultFormValue);
+        createdToast({
+          title: "タスクが登録されました。",
+          description: "",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+        createdToast({
+          title: "タスクの登録に失敗しました。",
+          description: "",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      });
   };
 
   const updateTodo = async (): Promise<void> => {
@@ -172,24 +184,38 @@ export default function TodoListPage() {
       completionDate: new Date(todoForm.completionDate),
       status: todoForm.status,
     };
-    const targetTodo: TodoType = await fetch(`${url}/${todoForm.id}`, {
+
+    await fetch(`${url}/${todoForm.id}`, {
       method: "PUT",
       body: JSON.stringify(params),
-    }).then((r) => r.json());
-    setTodoList((prev) => {
-      const index = prev.findIndex((todo) => todo.id === targetTodo.id);
-      const convertedTodoList = prev.toSpliced(index, 1, targetTodo);
-      return convertedTodoList;
-    });
-    setTodoForm(defaultFormValue);
-    setIsRegister(true);
-    createdToast({
-      title: "Todoを更新しました",
-      description: "",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+    })
+      .then(async (r) => {
+        const targetTodo: TodoType = await r.json();
+        setTodoList((prev) => {
+          const index = prev.findIndex((todo) => todo.id === targetTodo.id);
+          const convertedTodoList = prev.toSpliced(index, 1, targetTodo);
+          return convertedTodoList;
+        });
+        setTodoForm(defaultFormValue);
+        setIsRegister(true);
+        createdToast({
+          title: "タスクが更新されました。",
+          description: "",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+        createdToast({
+          title: "タスクの更新に失敗しました。",
+          description: "",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      });
   };
 
   const deleteTodo = async (todoId: number | undefined): Promise<void> => {
@@ -205,14 +231,21 @@ export default function TodoListPage() {
     if (res.status === 200) {
       setTodoList((prev) => prev.filter((todo) => todo.id !== todoId));
       createdToast({
-        title: "Todoを削除しました",
+        title: "タスクが削除されました",
         description: "",
         status: "success",
         duration: 3000,
         isClosable: true,
       });
     } else {
-      console.log("Todoが削除できませんでした。");
+      console.log("タスクの削除に失敗しました。");
+      createdToast({
+        title: "タスクの削除に失敗しました。",
+        description: "",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
     onCloseDeleteDialog();
   };
@@ -259,9 +292,9 @@ export default function TodoListPage() {
   return (
     <>
       <Header />
-      <div className="px-8 bg-main-bg-color pt-8">
+      <div className="px-8 bg-main-bg-color">
         <div className="flex">
-          <div className="w-96">
+          <div className="w-96 pt-8 pr-20 border-r border-solid border-r-border-gray">
             <FormControl className="mb-4">
               <label className="font-bold">タスク名</label>
               <Input
@@ -338,9 +371,12 @@ export default function TodoListPage() {
               {isRegister ? "登録" : "更新"}
             </Button>
           </div>
-          <div className="w-full flex justify-center">
+          <div className="w-full pt-8 flex justify-center">
             <TableContainer>
-              <Table variant="striped" className="!border-separate	border-spacing-x-0 border-spacing-y-2">
+              <Table
+                variant="striped"
+                className="!border-separate	border-spacing-x-0 border-spacing-y-2"
+              >
                 <Thead>
                   <Tr>
                     <Th className="!normal-case">タスク名</Th>
@@ -362,9 +398,15 @@ export default function TodoListPage() {
                           {todo.title}
                         </span>
                       </Th>
-                      <Th className="!py-2">{convertedStatusBadge(todo.status)}</Th>
-                      <Th className="!py-2">{formattedDate(new Date(todo.completionDate))}</Th>
-                      <Th className="!py-2">{formattedDate(new Date(todo.updatedAt))}</Th>
+                      <Th className="!py-2">
+                        {convertedStatusBadge(todo.status)}
+                      </Th>
+                      <Th className="!py-2">
+                        {formattedDate(new Date(todo.completionDate))}
+                      </Th>
+                      <Th className="!py-2">
+                        {formattedDate(new Date(todo.updatedAt))}
+                      </Th>
                       <Th className="!py-2">
                         <IconButton
                           variant="unstyled"
@@ -400,10 +442,10 @@ export default function TodoListPage() {
             <AlertDialogOverlay>
               <AlertDialogContent>
                 <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                  確認
+                  タスクの削除
                 </AlertDialogHeader>
                 <AlertDialogBody>
-                  Todoを削除してもよろしいでしょうか。
+                  削除するともとに戻せません。よろしいですか？
                 </AlertDialogBody>
                 <AlertDialogFooter>
                   <Button ref={cancelRef} onClick={onCloseDeleteDialog}>

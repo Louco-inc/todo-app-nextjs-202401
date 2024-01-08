@@ -16,6 +16,7 @@ const config: Config = {
       colors: {
         "main-bg-color": "#F7F8FA",
         "main-color": "#282F72",
+        "border-gray": "#ACB4BE",
       },
     },
   },
