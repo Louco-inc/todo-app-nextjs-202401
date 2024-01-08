@@ -31,6 +31,7 @@ import {
   Th,
   Thead,
   Tr,
+  Text,
 } from "@chakra-ui/react";
 import { useState, useRef, useEffect } from "react";
 import { config } from "../../lib/config";
@@ -219,18 +220,18 @@ export default function TodoListPage() {
   const convertedStatusBadge = (status: string): JSX.Element => {
     switch (status) {
       case "todo":
-        return <Badge className="uppercase">{status}</Badge>;
+        return <Text className="uppercase">{status}</Text>;
       case "inProgress":
         return (
-          <Badge colorScheme="purple" className="uppercase">
+          <Text colorScheme="purple" className="uppercase">
             {status}
-          </Badge>
+          </Text>
         );
       case "done":
         return (
-          <Badge colorScheme="green" className="uppercase">
+          <Text colorScheme="green" className="uppercase">
             {status}
-          </Badge>
+          </Text>
         );
       default:
         return <></>;
@@ -258,219 +259,226 @@ export default function TodoListPage() {
   return (
     <>
       <Header />
-      <div className="flex">
-        <div className="w-96">
-          <FormControl className="mb-4">
-            <label className="font-bold">タスク名</label>
-            <Input
-              className="mt-2 !bg-white"
-              type="text"
-              isRequired
-              value={todoForm.title}
-              onChange={(e) =>
-                setTodoForm((prev) => ({
-                  ...prev,
-                  title: e.target.value,
-                }))
-              }
-            />
-            <FormErrorMessage>タスク名が入力されていません。</FormErrorMessage>
-          </FormControl>
-          <FormControl className="mb-4">
-            <label className="font-bold">説明</label>
-            <Textarea
-              className="mt-2 !bg-white"
-              value={todoForm.description}
-              onChange={(e) =>
-                setTodoForm((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-            />
-          </FormControl>
-          <FormControl className="mb-4">
-            <label className="font-bold">期日</label>
-            <Input
-              className="mt-2 !bg-white"
-              type="date"
-              isRequired
-              value={todoForm.completionDate}
-              onChange={(e) =>
-                setTodoForm((prev) => ({
-                  ...prev,
-                  completionDate: e.target.value,
-                }))
-              }
-            />
-          </FormControl>
-          <FormControl className="mb-4">
-            <label className="font-bold">ステータス</label>
-            <Select
-              className="mt-2 !bg-white"
-              value={todoForm.status}
-              isRequired
-              onChange={(e) =>
-                setTodoForm((prev) => ({
-                  ...prev,
-                  status: e.target.value,
-                }))
+      <div className="px-8 bg-main-bg-color pt-8">
+        <div className="flex">
+          <div className="w-96">
+            <FormControl className="mb-4">
+              <label className="font-bold">タスク名</label>
+              <Input
+                className="mt-2 !bg-white"
+                type="text"
+                isRequired
+                value={todoForm.title}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
+                }
+              />
+              <FormErrorMessage>
+                タスク名が入力されていません。
+              </FormErrorMessage>
+            </FormControl>
+            <FormControl className="mb-4">
+              <label className="font-bold">説明</label>
+              <Textarea
+                className="mt-2 !bg-white"
+                value={todoForm.description}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </FormControl>
+            <FormControl className="mb-4">
+              <label className="font-bold">期日</label>
+              <Input
+                className="mt-2 !bg-white"
+                type="date"
+                isRequired
+                value={todoForm.completionDate}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    completionDate: e.target.value,
+                  }))
+                }
+              />
+            </FormControl>
+            <FormControl className="mb-4">
+              <label className="font-bold">ステータス</label>
+              <Select
+                className="mt-2 !bg-white"
+                value={todoForm.status}
+                isRequired
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    status: e.target.value,
+                  }))
+                }
+              >
+                <option value="todo">todo</option>
+                <option value="inProgress">inProgress</option>
+                <option value="done">done</option>
+              </Select>
+            </FormControl>
+            <Button
+              className="mb-4 mt-8 w-80"
+              bg="mainColor"
+              color="white"
+              _hover={{ color: "", borderColor: "" }}
+              onClick={async () =>
+                isRegister ? await registerTodo() : await updateTodo()
               }
             >
-              <option value="todo">todo</option>
-              <option value="inProgress">inProgress</option>
-              <option value="done">done</option>
-            </Select>
-          </FormControl>
-          <Button
-            className="mb-4 mt-8 w-80"
-            bg="mainColor"
-            color="white"
-            onClick={async () =>
-              isRegister ? await registerTodo() : await updateTodo()
-            }
-          >
-            {isRegister ? "登録" : "更新"}
-          </Button>
-        </div>
-        <div className="w-full flex justify-center">
-          <TableContainer>
-            <Table variant="striped">
-              <Thead>
-                <Tr>
-                  <Th className="!normal-case">タスク名</Th>
-                  <Th className="!normal-case">ステータス</Th>
-                  <Th className="!normal-case">期日</Th>
-                  <Th className="!normal-case">更新日</Th>
-                  <Th></Th>
-                  <Th></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {todoList.map((todo) => (
-                  <Tr key={"todo-item-" + todo.id}>
-                    <Th>
-                      <span
-                        className="hover:cursor-pointer !normal-case"
-                        onClick={async () => await openTodoDetail(todo.id)}
-                      >
-                        {todo.title}
-                      </span>
-                    </Th>
-                    <Th>{convertedStatusBadge(todo.status)}</Th>
-                    <Th>{formattedDate(new Date(todo.completionDate))}</Th>
-                    <Th>{formattedDate(new Date(todo.updatedAt))}</Th>
-                    <Th>
-                      <IconButton
-                        variant="unstyled"
-                        className="!min-w-0 !min-h-0"
-                        aria-label="Search database"
-                        icon={<EditIcon />}
-                        onClick={async () => await editTodo(todo.id)}
-                      />
-                    </Th>
-                    <Th>
-                      <IconButton
-                        variant="unstyled"
-                        className="!min-w-0 !min-h-0"
-                        aria-label="Search database"
-                        icon={<DeleteIcon />}
-                        onClick={() => {
-                          setTargetTodoId(todo.id);
-                          onOpenDeleteDialog();
-                        }}
-                      />
-                    </Th>
+              {isRegister ? "登録" : "更新"}
+            </Button>
+          </div>
+          <div className="w-full flex justify-center">
+            <TableContainer>
+              <Table variant="striped" className="!border-separate	border-spacing-x-0 border-spacing-y-2">
+                <Thead>
+                  <Tr>
+                    <Th className="!normal-case">タスク名</Th>
+                    <Th className="!normal-case">ステータス</Th>
+                    <Th className="!normal-case">期日</Th>
+                    <Th className="!normal-case">更新日</Th>
+                    <Th></Th>
+                    <Th></Th>
                   </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </TableContainer>
-        </div>
-        <AlertDialog
-          isOpen={isOpenDeleteDialog}
-          leastDestructiveRef={cancelRef}
-          onClose={onCloseDeleteDialog}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                確認
-              </AlertDialogHeader>
-              <AlertDialogBody>
-                Todoを削除してもよろしいでしょうか。
-              </AlertDialogBody>
-              <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={onCloseDeleteDialog}>
-                  キャンセル
+                </Thead>
+                <Tbody>
+                  {todoList.map((todo) => (
+                    <Tr key={"todo-item-" + todo.id} className="bg-white">
+                      <Th className="!py-2">
+                        <span
+                          className="hover:cursor-pointer !normal-case"
+                          onClick={async () => await openTodoDetail(todo.id)}
+                        >
+                          {todo.title}
+                        </span>
+                      </Th>
+                      <Th className="!py-2">{convertedStatusBadge(todo.status)}</Th>
+                      <Th className="!py-2">{formattedDate(new Date(todo.completionDate))}</Th>
+                      <Th className="!py-2">{formattedDate(new Date(todo.updatedAt))}</Th>
+                      <Th className="!py-2">
+                        <IconButton
+                          variant="unstyled"
+                          className="!min-w-0 !min-h-0"
+                          aria-label="Search database"
+                          icon={<EditIcon />}
+                          onClick={async () => await editTodo(todo.id)}
+                        />
+                      </Th>
+                      <Th className="!py-2">
+                        <IconButton
+                          variant="unstyled"
+                          className="!min-w-0 !min-h-0"
+                          aria-label="Search database"
+                          icon={<DeleteIcon />}
+                          onClick={() => {
+                            setTargetTodoId(todo.id);
+                            onOpenDeleteDialog();
+                          }}
+                        />
+                      </Th>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </div>
+          <AlertDialog
+            isOpen={isOpenDeleteDialog}
+            leastDestructiveRef={cancelRef}
+            onClose={onCloseDeleteDialog}
+          >
+            <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                  確認
+                </AlertDialogHeader>
+                <AlertDialogBody>
+                  Todoを削除してもよろしいでしょうか。
+                </AlertDialogBody>
+                <AlertDialogFooter>
+                  <Button ref={cancelRef} onClick={onCloseDeleteDialog}>
+                    キャンセル
+                  </Button>
+                  <Button
+                    colorScheme="red"
+                    onClick={async () => await deleteTodo(targetTodoId)}
+                    ml={3}
+                  >
+                    削除
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+          </AlertDialog>
+          <Modal isOpen={isOpenDetailModal} onClose={onCloseDetailModal}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>{todoDetail?.title}</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Box>
+                  <div>{convertedStatusBadge(todoDetail?.status ?? "")}</div>
+                  <div>{todoDetail?.description}</div>
+                  <div>
+                    完了予定日：
+                    {formattedDate(new Date(todoDetail?.completionDate ?? ""))}
+                  </div>
+                  <div>
+                    登録日：
+                    {formattedDate(new Date(todoDetail?.createdAt ?? ""))}
+                  </div>
+                  <div>
+                    更新日：
+                    {formattedDate(new Date(todoDetail?.updatedAt ?? ""))}
+                  </div>
+                </Box>
+              </ModalBody>
+
+              <ModalFooter>
+                <Button
+                  colorScheme="teal"
+                  mr={3}
+                  onClick={() => {
+                    setTodoForm({
+                      id: todoDetail?.id,
+                      title: todoDetail?.title ?? "",
+                      description: todoDetail?.description,
+                      completionDate: formattedDate(
+                        new Date(todoDetail?.completionDate ?? "")
+                      ),
+                      status: todoDetail?.status ?? "todo",
+                    });
+                    setIsRegister(false);
+                    onCloseDetailModal();
+                  }}
+                >
+                  編集
                 </Button>
                 <Button
                   colorScheme="red"
-                  onClick={async () => await deleteTodo(targetTodoId)}
-                  ml={3}
+                  mr={3}
+                  onClick={() => {
+                    setTargetTodoId(todoDetail?.id);
+                    onCloseDetailModal();
+                    onOpenDeleteDialog();
+                  }}
                 >
                   削除
                 </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
-        <Modal isOpen={isOpenDetailModal} onClose={onCloseDetailModal}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>{todoDetail?.title}</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Box>
-                <div>{convertedStatusBadge(todoDetail?.status ?? "")}</div>
-                <div>{todoDetail?.description}</div>
-                <div>
-                  完了予定日：
-                  {formattedDate(new Date(todoDetail?.completionDate ?? ""))}
-                </div>
-                <div>
-                  登録日：{formattedDate(new Date(todoDetail?.createdAt ?? ""))}
-                </div>
-                <div>
-                  更新日：{formattedDate(new Date(todoDetail?.updatedAt ?? ""))}
-                </div>
-              </Box>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button
-                colorScheme="teal"
-                mr={3}
-                onClick={() => {
-                  setTodoForm({
-                    id: todoDetail?.id,
-                    title: todoDetail?.title ?? "",
-                    description: todoDetail?.description,
-                    completionDate: formattedDate(
-                      new Date(todoDetail?.completionDate ?? "")
-                    ),
-                    status: todoDetail?.status ?? "todo",
-                  });
-                  setIsRegister(false);
-                  onCloseDetailModal();
-                }}
-              >
-                編集
-              </Button>
-              <Button
-                colorScheme="red"
-                mr={3}
-                onClick={() => {
-                  setTargetTodoId(todoDetail?.id);
-                  onCloseDetailModal();
-                  onOpenDeleteDialog();
-                }}
-              >
-                削除
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        </div>
       </div>
     </>
   );

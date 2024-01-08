@@ -6,7 +6,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "GET") {
-    const id = req.query.id;
+    const id = req.query.todo_id;
     const todo = await db.todo.findUnique({
       where: {
         id: Number(id),
@@ -18,7 +18,7 @@ export default async function handler(
     const { title, description, completionDate, status } = params;
     const newTodo = await db.todo.update({
       where: {
-        id: Number(req.query.id),
+        id: Number(req.query.todo_id),
       },
       data: {
         title,
@@ -31,7 +31,7 @@ export default async function handler(
   } else if (req.method === "DELETE") {
     await db.todo.delete({
       where: {
-        id: Number(req.query.id),
+        id: Number(req.query.todo_id),
       },
     });
     res.status(200).json({ response: "ok" });

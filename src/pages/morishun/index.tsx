@@ -4,7 +4,9 @@ export default function TodoListPage() {
   return (
     <>
       <Header />
-      <div>morishunのページ</div>
+      <div className="px-8 bg-main-bg-color pt-8">
+        <div>morishunのページ</div>
+      </div>
     </>
   );
 }

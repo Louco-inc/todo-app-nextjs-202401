@@ -22,7 +22,7 @@ export default async function handler(
   } else if (req.method === "POST") {
     const params = JSON.parse(req.body);
 		const { title, description, completionDate, status } = params;
-    const newTodo = await prisma.todo.create({
+    const newTodo = await db.todo.create({
       data: {
         title,
         description,
