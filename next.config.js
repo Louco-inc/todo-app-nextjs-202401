@@ -13,7 +13,7 @@ const nextConfig = {
             key: "Access-Control-Allow-Origin",
             // すべてのオリジンを許可するなら * (アスタリスク)
             // ただセキュリティ的にはよろしくないので注意
-            value: "https://todo-app-nextjs-202401.vercel.app",
+            value: "https://todo-app-nextjs-202401-tbt8qcn1r-murata-naoya.vercel.app",
           },
           {
             // 許可するメソッド
