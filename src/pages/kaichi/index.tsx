@@ -1,6 +1,6 @@
 import Header from "@/components/header";
 
-export default function TodoListPage() {
+export default function TodoListPage(): JSX.Element {
   return (
     <>
       <Header />

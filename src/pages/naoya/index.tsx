@@ -67,11 +67,11 @@ const defaultFormValue = {
   status: "todo",
 };
 
-export default function TodoListPage() {
+export default function TodoListPage(): JSX.Element {
   const [todoList, setTodoList] = useState<TodoType[]>([]);
   const [todoForm, setTodoForm] = useState<TodoFormType>(defaultFormValue);
   const [targetTodoId, setTargetTodoId] = useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [isRegister, setIsRegister] = useState<boolean>(true);
   const [todoDetail, setTodoDetail] = useState<TodoType>();
@@ -98,13 +98,17 @@ export default function TodoListPage() {
 
   const fetchTodoList = async (): Promise<void> => {
     const url = config.apiPrefix + config.apiHost + "/api/todo_lists";
-    const lists: TodoType[] = await fetch(url).then((r) => r.json());
+    const lists: TodoType[] = await fetch(url).then(
+      async (r) => await r.json(),
+    );
     setTodoList(lists);
   };
 
   const fetchTargetTodo = async (todoId: number): Promise<TodoType> => {
     const url = config.apiPrefix + config.apiHost + "/api/todo_lists";
-    const targetTodo = await fetch(`${url}/${todoId}`).then((r) => r.json());
+    const targetTodo = await fetch(`${url}/${todoId}`).then(
+      async (r) => await r.json(),
+    );
     return targetTodo;
   };
 
@@ -496,7 +500,7 @@ export default function TodoListPage() {
                       title: todoDetail?.title ?? "",
                       description: todoDetail?.description,
                       completionDate: formattedDate(
-                        new Date(todoDetail?.completionDate ?? "")
+                        new Date(todoDetail?.completionDate ?? ""),
                       ),
                       status: todoDetail?.status ?? "todo",
                     });

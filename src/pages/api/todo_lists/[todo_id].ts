@@ -4,7 +4,7 @@ import { db } from "lib/prisma";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
-) {
+): Promise<void> {
   if (req.method === "GET") {
     const id = req.query.todo_id;
     const todo = await db.todo.findUnique({
@@ -14,6 +14,7 @@ export default async function handler(
     });
     res.status(200).json(todo);
   } else if (req.method === "PUT") {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const params = JSON.parse(req.body);
     const { title, description, completionDate, status } = params;
     const newTodo = await db.todo.update({

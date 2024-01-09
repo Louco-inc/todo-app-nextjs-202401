@@ -1,11 +1,11 @@
 import { Button } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
-export default function Header() {
+export default function Header(): JSX.Element {
   const router = useRouter();
 
   const variantAndClassNameProps = (
-    name: string
+    name: string,
   ): {
     variant: string;
     className: string;
@@ -31,7 +31,9 @@ export default function Header() {
     }
   };
 
-  const hoverEffect = (name: string) => {
+  const hoverEffect = (
+    name: string,
+  ): { color: string; borderColor: string } => {
     if (router.pathname?.endsWith(name)) {
       return { color: "", borderColor: "" };
     } else {
@@ -47,28 +49,28 @@ export default function Header() {
           <Button
             _hover={hoverEffect("/daichi")}
             {...variantAndClassNameProps("daichi")}
-            onClick={() => router.push("/daichi")}
+            onClick={async () => await router.push("/daichi")}
           >
             daichi
           </Button>
           <Button
             _hover={hoverEffect("/kaichi")}
             {...variantAndClassNameProps("kaichi")}
-            onClick={() => router.push("kaichi")}
+            onClick={async () => await router.push("kaichi")}
           >
             kaichi
           </Button>
           <Button
             _hover={hoverEffect("/morishun")}
             {...variantAndClassNameProps("morishun")}
-            onClick={() => router.push("morishun")}
+            onClick={async () => await router.push("morishun")}
           >
             morishun
           </Button>
           <Button
             _hover={hoverEffect("/naoya")}
             {...variantAndClassNameProps("naoya")}
-            onClick={() => router.push("naoya")}
+            onClick={async () => await router.push("naoya")}
           >
             naoya
           </Button>
