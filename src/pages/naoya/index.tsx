@@ -33,7 +33,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useState, useRef, useEffect } from "react";
-import { config } from "../../lib/config";
 
 type TodoType = {
   id: number;
@@ -97,7 +96,6 @@ export default function TodoListPage(): JSX.Element {
   }, []);
 
   const fetchTodoList = async (): Promise<void> => {
-    // const url = config.apiPrefix + config.apiHost + "/api/todo_lists";
     const lists: TodoType[] = await fetch("/api/todo_lists").then(
       async (r) => await r.json(),
     );
@@ -105,8 +103,7 @@ export default function TodoListPage(): JSX.Element {
   };
 
   const fetchTargetTodo = async (todoId: number): Promise<TodoType> => {
-    const url = config.apiPrefix + config.apiHost + "/api/todo_lists";
-    const targetTodo = await fetch(`${url}/${todoId}`).then(
+    const targetTodo = await fetch(`/api/todo_lists/${todoId}`).then(
       async (r) => await r.json(),
     );
     return targetTodo;
@@ -142,14 +139,13 @@ export default function TodoListPage(): JSX.Element {
     if (!validateTodo()) {
       return;
     }
-    const url = config.apiPrefix + config.apiHost + "/api/todo_lists";
     const params = {
       title: todoForm.title,
       description: todoForm.description,
       completionDate: new Date(todoForm.completionDate),
       status: todoForm.status,
     };
-    await fetch(url, {
+    await fetch("/api/todo_lists", {
       method: "POST",
       body: JSON.stringify(params),
     })
@@ -181,7 +177,6 @@ export default function TodoListPage(): JSX.Element {
     if (!validateTodo()) {
       return;
     }
-    const url = config.apiPrefix + config.apiHost + "/api/todo_lists";
     const params = {
       title: todoForm.title,
       description: todoForm.description,
@@ -189,7 +184,7 @@ export default function TodoListPage(): JSX.Element {
       status: todoForm.status,
     };
 
-    await fetch(`${url}/${todoForm.id}`, {
+    await fetch(`/api/todo_lists/${todoForm.id}`, {
       method: "PUT",
       body: JSON.stringify(params),
     })
@@ -227,8 +222,7 @@ export default function TodoListPage(): JSX.Element {
       console.log(todoId + ":idが指定されていません");
       return;
     }
-    const url = config.apiPrefix + config.apiHost + "/api/todo_lists";
-    const res = await fetch(`${url}/${todoId}`, {
+    const res = await fetch(`/api/todo_lists/${todoId}`, {
       method: "DELETE",
       body: JSON.stringify({ id: todoId }),
     });
