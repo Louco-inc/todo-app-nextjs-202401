@@ -32,9 +32,8 @@ type TodoType = {
 };
 
 export default function TodoListPage(): JSX.Element {
-
   useEffect(() => {}, []);
-  
+
   const fetchToDoList = async (): Promise<void> => {
     const lists: TodoType[] = await fetch("/api/todo_lists").then(
       async (r) => await r.json()
