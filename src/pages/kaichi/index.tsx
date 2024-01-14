@@ -1,4 +1,5 @@
 import Header from "@/components/header";
+import React, { useEffect, useState } from 'react';
 import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   FormControl,
@@ -16,7 +17,32 @@ import {
   TableContainer,
 } from '@chakra-ui/react'
 
+type TodoType = {
+  id: number;
+  title: string;
+  description?: string;
+  completionDate: string;
+  status: string;
+  createdAt?: string;
+  updatedAt: string;
+};
+
 export default function TodoListPage(): JSX.Element {
+  const [todoList, setTodoList] = useState<TodoType[]>([]);
+
+  useEffect(() => {
+    const init = async (): Promise<void> => {
+      await fetchTodoList();
+    };
+    init();
+  }, []);
+
+  const fetchTodoList = async (): Promise<void> => {
+    const lists: TodoType[] = await fetch("/api/todo_lists").then(
+      async (r) => await r.json(),
+    );
+    setTodoList(lists);
+  };
   return (
     <>
       <Header />
@@ -43,7 +69,7 @@ export default function TodoListPage(): JSX.Element {
                 <option>done</option>
               </Select>
             </FormControl>
-            <Button colorScheme='blue'>登録</Button>
+            <Button colorScheme='blue' onClick={()=>[]}>登録</Button>
           </div>
           <div className="flex-1">
             <TableContainer>
@@ -57,14 +83,10 @@ export default function TodoListPage(): JSX.Element {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  <Tr>
-                    <Td>inches</Td>
-                    <Td>millimetres (mm)</Td>
-                    <Td>millimetres</Td>
-                    <Td>millimetres</Td>
-                    <Td><Button colorScheme='blue'>編集</Button></Td>
-                    <Td><Button colorScheme='blue'>削除</Button></Td>
-                  </Tr>
+                  {todoList.map((item) => {
+                    return (<Tr key={item.id}><Th>{item.title}</Th><Th>{item.status}</Th><Th>{item.completionDate}</Th><Th>{item.updatedAt}</Th></Tr>)
+                  })}
+
                 </Tbody>
               </Table>
             </TableContainer>
