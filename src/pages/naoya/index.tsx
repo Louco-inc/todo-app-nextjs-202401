@@ -34,22 +34,20 @@ import {
 } from "@chakra-ui/react";
 import { useState, useRef, useEffect } from "react";
 
-type TodoType = {
-  id: number;
-  title: string;
-  description?: string;
-  completionDate: string;
-  status: string;
-  createdAt?: string;
-  updatedAt: string;
-};
+type TodoStatusType = "todo" | "inProgress" | "done"
 
 type TodoFormType = {
   id?: number;
   title: string;
   description?: string;
   completionDate: string;
-  status: string;
+  status: TodoStatusType;
+};
+
+type TodoType = TodoFormType & {
+  id: number;
+  createdAt?: string;
+  updatedAt: string;
 };
 
 const formattedDate = (date: Date): string => {
@@ -59,7 +57,7 @@ const formattedDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-const defaultFormValue = {
+const defaultFormValue: TodoFormType = {
   title: "",
   description: "",
   completionDate: formattedDate(new Date()),
@@ -346,9 +344,9 @@ export default function TodoListPage(): JSX.Element {
                 value={todoForm.status}
                 isRequired
                 onChange={(e) =>
-                  setTodoForm((prev) => ({
+                  setTodoForm((prev): TodoFormType => ({
                     ...prev,
-                    status: e.target.value,
+                    status: e.target.value as TodoStatusType,
                   }))
                 }
               >
