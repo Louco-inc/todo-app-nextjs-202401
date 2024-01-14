@@ -5,7 +5,7 @@ export default function TodoListPage(): JSX.Element {
     <>
       <Header />
       <div className="px-8 bg-main-bg-color pt-8">
-        <div>kaichiのページ</div>
+        <div>kaichikaichiのページ</div>
       </div>
     </>
   );
