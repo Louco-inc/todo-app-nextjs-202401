@@ -19,7 +19,7 @@ import {
   Textarea,
   Select,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type TodoType = {
   id: number;
@@ -31,95 +31,116 @@ type TodoType = {
   updatedAt: string;
 };
 
-export default function TodoListPage(): JSX.Element {
-  useEffect(() => {}, []);
+// 日付を「yyyy-mm-dd」にフォーマット
+// 参考：https://ribbit.konomi.app/blog/javascript-date-format/
+const getFormattedDate = (date: Date): string => {
+  return date.toISOString().split("T")[0];
+};
 
-  const fetchToDoList = async (): Promise<void> => {
+export default function TodoListPage(): JSX.Element {
+  const [todoList, setTodoList] = useState<TodoType[]>([]);
+
+  useEffect(() => {
+    const init = async (): Promise<void> => {
+      await fetchTodoList();
+    };
+    init();
+  }, []);
+
+  const fetchTodoList = async (): Promise<void> => {
     const lists: TodoType[] = await fetch("/api/todo_lists").then(
       async (r) => await r.json()
     );
-    console.log(lists);
+    setTodoList(lists);
   };
 
   return (
     <>
       <Header />
-      <Flex className="justify-between">
-        <div className="px-8 bg-main-bg-color pt-8 border-r border-solid border-r-border-gray">
-          <FormControl>
-            <FormLabel className="font-bold">タスク名</FormLabel>
-            <Input className="!bg-white" type="text"></Input>
-          </FormControl>
-          <FormControl>
-            <FormLabel className="font-bold">説明</FormLabel>
-            <Textarea className="!bg-white"></Textarea>
-          </FormControl>
-          <FormControl>
-            <FormLabel className="font-bold">期日</FormLabel>
-            <Input className="!bg-white" type="date"></Input>
-          </FormControl>
-          <FormControl>
-            <FormLabel className="font-bold">ステータス</FormLabel>
-            <Select className="!bg-white">
-              <option value="todo">TODO</option>
-              <option value="inProgress">INPROGRESS</option>
-              <option value="done">DONE</option>
-            </Select>
-          </FormControl>
-          <Button
-            onClick={fetchToDoList}
-            className="m-8"
-            bg="mainColor"
-            color="white"
-          >
-            登録
-          </Button>
-        </div>
-        <div className="w-full px-8 bg-main-bg-color pt-8">
-          <TableContainer>
-            <Table>
-              <Thead>
-                <Tr>
-                  <Th>タスク名</Th>
-                  <Th>ステータス</Th>
-                  <Th>期日</Th>
-                  <Th>更新日</Th>
-                  <Th></Th>
-                  <Th></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                <Tr>
-                  <Td>
-                    <Text>タスク１</Text>
-                  </Td>
-                  <Td>
-                    <Text>TODO</Text>
-                  </Td>
-                  <Td>
-                    <Text>2999/12/31</Text>
-                  </Td>
-                  <Td>
-                    <Text>2999/12/31</Text>
-                  </Td>
-                  <Td>
-                    <IconButton
-                      aria-label="Search database"
-                      icon={<EditIcon />}
-                    />
-                  </Td>
-                  <Td>
-                    <IconButton
-                      aria-label="Search database"
-                      icon={<DeleteIcon />}
-                    />
-                  </Td>
-                </Tr>
-              </Tbody>
-            </Table>
-          </TableContainer>
-        </div>
-      </Flex>
+      <div className="px-8 bg-main-bg-color">
+        <Flex>
+          <div className="w-96 pt-8 pr-8 border-r border-solid border-r-border-gray">
+            <FormControl>
+              <FormLabel className="font-bold">タスク名</FormLabel>
+              <Input className="!bg-white" type="text"></Input>
+            </FormControl>
+            <FormControl>
+              <FormLabel className="font-bold">説明</FormLabel>
+              <Textarea className="!bg-white"></Textarea>
+            </FormControl>
+            <FormControl>
+              <FormLabel className="font-bold">期日</FormLabel>
+              <Input className="!bg-white" type="date"></Input>
+            </FormControl>
+            <FormControl>
+              <FormLabel className="font-bold">ステータス</FormLabel>
+              <Select className="!bg-white">
+                <option value="todo">TODO</option>
+                <option value="inProgress">INPROGRESS</option>
+                <option value="done">DONE</option>
+              </Select>
+            </FormControl>
+            <Button
+              onClick={() => {}}
+              className="mb-4 mt-8 w-80"
+              bg="mainColor"
+              color="white"
+            >
+              登録
+            </Button>
+          </div>
+          <div className="w-full px-8 pt-8 flex justify-center">
+            <TableContainer>
+              <Table>
+                <Thead>
+                  <Tr>
+                    <Th>タスク名</Th>
+                    <Th>ステータス</Th>
+                    <Th>期日</Th>
+                    <Th>更新日</Th>
+                    <Th></Th>
+                    <Th></Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {todoList.map((todo) => (
+                    <Tr key={"todo-item-" + todo.id}>
+                      <Td className="!py-2">
+                        <Text>{todo.title}</Text>
+                      </Td>
+                      <Td className="!py-2">
+                        <Text>{todo.status}</Text>
+                      </Td>
+                      <Td className="!py-2">
+                        <Text>
+                          {getFormattedDate(new Date(todo.completionDate))}
+                        </Text>
+                      </Td>
+                      <Td className="!py-2">
+                        <Text>
+                          {getFormattedDate(new Date(todo.updatedAt))}
+                        </Text>
+                      </Td>
+                      <Td className="!py-2">
+                        <IconButton
+                          aria-label="Search database"
+                          icon={<EditIcon />}
+                        />
+                      </Td>
+                      <Td className="!py-2">
+                        <IconButton
+                          aria-label="Search database"
+                          icon={<DeleteIcon />}
+                        />
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </div>
+        </Flex>
+      </div>
     </>
   );
 }
