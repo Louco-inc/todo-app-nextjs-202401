@@ -27,8 +27,31 @@ type TodoType = {
   updatedAt: string;
 };
 
+type TodoFormType = {
+  id?: number;
+  title: string;
+  description?: string;
+  completionDate: string;
+  status: string;
+};
+
+const formattedDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const defaultFormValue = {
+  title: "",
+  description: "",
+  completionDate: formattedDate(new Date()),
+  status: "todo",
+};
+
 export default function TodoListPage(): JSX.Element {
   const [todoList, setTodoList] = useState<TodoType[]>([]);
+  const [todoForm, setTodoForm] = useState<TodoFormType>(defaultFormValue);
 
   useEffect(() => {
     const init = async (): Promise<void> => {
@@ -43,6 +66,20 @@ export default function TodoListPage(): JSX.Element {
     );
     setTodoList(lists);
   };
+
+  const registerTodo = async (): Promise<void> => {
+    const params = {
+      title: todoForm.title,
+      description: todoForm.description,
+      completionDate: new Date(todoForm.completionDate),
+      status: todoForm.status,
+    };
+    await fetch("/api/todo_lists", {
+      method: "POST",
+      body: JSON.stringify(params),
+    })
+  };
+
   return (
     <>
       <Header />
@@ -69,7 +106,12 @@ export default function TodoListPage(): JSX.Element {
                 <option>done</option>
               </Select>
             </FormControl>
-            <Button colorScheme='blue' onClick={()=>[]}>登録</Button>
+            <Button
+              colorScheme='blue'
+              onClick={async () =>
+                registerTodo()}
+            >登録
+            </Button>
           </div>
           <div className="flex-1">
             <TableContainer>
