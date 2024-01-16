@@ -7,7 +7,9 @@ import {
   FormLabel,
   Flex,
   Input,
+  Icon,
   IconButton,
+  HStack,
   Table,
   Thead,
   Tbody,
@@ -31,11 +33,33 @@ type TodoType = {
   updatedAt: string;
 };
 
+// ステータス横に表示するバッチのアイコンのPropsの型を指定する
+// 参考：https://chakra-ui.com/docs/components/icon/props#icon-props
+type IconPropsType = {
+  viewBox?: string;
+  boxSize?: string;
+  color?: string;
+  focusable?: boolean;
+  role?: "presentation" | "img";
+  children?: React.ReactNode;
+};
+
 // 日付を「yyyy-mm-dd」にフォーマット
 // 参考：https://ribbit.konomi.app/blog/javascript-date-format/
 const getFormattedDate = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
+
+// ステータス横に表示するバッチのアイコンのコンポーネントを作成
+// 参考：https://chakra-ui.com/docs/components/icon/usage#using-the-icon-component
+const CircleIcon = (props: IconPropsType): JSX.Element => (
+  <Icon viewBox='0 0 200 200' {...props}>
+    <path
+      fill='currentColor'
+      d='M 100, 100 m -75, 0 a 75,75 0 1,0 150,0 a 75,75 0 1,0 -150,0'
+    />
+  </Icon>
+)
 
 export default function TodoListPage(): JSX.Element {
   const [todoList, setTodoList] = useState<TodoType[]>([]);
@@ -52,6 +76,34 @@ export default function TodoListPage(): JSX.Element {
       async (r) => await r.json()
     );
     setTodoList(lists);
+  };
+
+  const convertedStatusBadge = (status: string): JSX.Element => {
+    switch(status) {
+      case "todo":
+        return (
+          <HStack>
+            <CircleIcon boxSize="3" color="gray.400"/>
+            <Text className="uppercase">{status}</Text>
+          </HStack>
+        );
+      case "inProgress":
+        return (
+          <HStack>
+            <CircleIcon boxSize="3" color="red.400"/>
+            <Text className="uppercase">{status}</Text>
+          </HStack>
+        );
+      case "done":
+        return (
+          <HStack>
+            <CircleIcon boxSize="3" color="green.400"/>
+            <Text className="uppercase">{status}</Text>
+          </HStack>
+        );
+      default:
+        return <></>;
+    }
   };
 
   return (
@@ -104,12 +156,12 @@ export default function TodoListPage(): JSX.Element {
                 </Thead>
                 <Tbody>
                   {todoList.map((todo) => (
-                    <Tr key={"todo-item-" + todo.id}>
+                    <Tr key={"todo-item-" + todo.id} className="bg-white">
                       <Td className="!py-2">
                         <Text>{todo.title}</Text>
                       </Td>
                       <Td className="!py-2">
-                        <Text>{todo.status}</Text>
+                          {convertedStatusBadge(todo.status)}
                       </Td>
                       <Td className="!py-2">
                         <Text>
