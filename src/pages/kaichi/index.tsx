@@ -9,6 +9,7 @@ import {
   Button,
   // ButtonGroup,
   Input,
+  useToast,
   Textarea,
   Select,
   Table,
@@ -82,6 +83,10 @@ export default function TodoListPage(): JSX.Element {
     await fetch("/api/todo_lists", {
       method: "POST",
       body: JSON.stringify(params),
+    }).then(async (r) => {
+      const newTodo: TodoType = await r.json();
+      setTodoList((prev) => [newTodo, ...prev]);
+      setTodoForm(defaultFormValue);
     })
   };
 
