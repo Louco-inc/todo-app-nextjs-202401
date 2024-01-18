@@ -80,6 +80,7 @@ export default function TodoListPage(): JSX.Element {
       completionDate: new Date(todoForm.completionDate),
       status: todoForm.status,
     };
+    console.log(todoForm);
     await fetch("/api/todo_lists", {
       method: "POST",
       body: JSON.stringify(params),
@@ -87,6 +88,7 @@ export default function TodoListPage(): JSX.Element {
       const newTodo: TodoType = await r.json();
       setTodoList((prev) => [newTodo, ...prev]);
       setTodoForm(defaultFormValue);
+      console.log(newTodo);
     })
   };
 
@@ -98,19 +100,47 @@ export default function TodoListPage(): JSX.Element {
           <div className="flex-1">
             <FormControl>
               <FormLabel>タスク名</FormLabel>
-              <Input type="text" />
+              <Input type="text"
+                value={todoForm.title}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
+                } />
             </FormControl>
             <FormControl>
               <FormLabel>説明</FormLabel>
-              <Textarea />
+              <Textarea
+                value={todoForm.description}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                } />
             </FormControl>
             <FormControl>
               <FormLabel>期日</FormLabel>
-              <Input type="date" />
+              <Input type="date"
+                value={todoForm.completionDate}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    completionDate: e.target.value,
+                  }))
+                } />
             </FormControl>
             <FormControl>
               <FormLabel>ステータス</FormLabel>
-              <Select>
+              <Select
+              value={todoForm.status}
+              onChange={(e) =>
+                setTodoForm((prev) => ({
+                  ...prev,
+                  status: e.target.value,
+                }))
+              } >
                 <option>todo</option>
                 <option>inProgress</option>
                 <option>done</option>
