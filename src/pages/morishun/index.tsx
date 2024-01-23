@@ -20,15 +20,22 @@ import {
   Text,
   Textarea,
   Select,
+  useToast,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-type TodoType = {
-  id: number;
+type TodoStatusType = "todo" | "inProgress" | "done";
+
+type TodoFormType = {
+  id?: number;
   title: string;
   description?: string;
   completionDate: string;
-  status: string;
+  status: TodoStatusType;
+};
+
+type TodoType = TodoFormType & {
+  id: number;
   createdAt?: string;
   updatedAt: string;
 };
@@ -50,19 +57,29 @@ const getFormattedDate = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
 
+const defaultTodoFormValue: TodoFormType = {
+  title: "",
+  description: "",
+  completionDate: getFormattedDate(new Date()),
+  status: "todo",
+};
+
 // ステータス横に表示するバッチのアイコンのコンポーネントを作成
 // 参考：https://chakra-ui.com/docs/components/icon/usage#using-the-icon-component
 const CircleIcon = (props: IconPropsType): JSX.Element => (
-  <Icon viewBox='0 0 200 200' {...props}>
+  <Icon viewBox="0 0 200 200" {...props}>
     <path
-      fill='currentColor'
-      d='M 100, 100 m -75, 0 a 75,75 0 1,0 150,0 a 75,75 0 1,0 -150,0'
+      fill="currentColor"
+      d="M 100, 100 m -75, 0 a 75,75 0 1,0 150,0 a 75,75 0 1,0 -150,0"
     />
   </Icon>
-)
+);
 
 export default function TodoListPage(): JSX.Element {
   const [todoList, setTodoList] = useState<TodoType[]>([]);
+  const [todoForm, setTodoForm] = useState<TodoFormType>(defaultTodoFormValue);
+  const [isRegister, setIsRegister] = useState<boolean>(true);
+  const createdToast = useToast();
 
   useEffect(() => {
     const init = async (): Promise<void> => {
@@ -78,26 +95,133 @@ export default function TodoListPage(): JSX.Element {
     setTodoList(lists);
   };
 
+  const fetchTargetTodo = async (todoId: number): Promise<TodoType> => {
+    const targetTodo: TodoType = await fetch(`/api/todo_lists/${todoId}`).then(
+      async (r) => await r.json(),
+    );
+    return targetTodo;
+  };
+
+  // Todoを登録するメソッド
+  const registerTodo = async (): Promise<void> => {
+    // ToDo登録APIに渡すパラメータに入力した値を設定
+    const params = {
+      title: todoForm.title,
+      description: todoForm.description,
+      completionDate: new Date(todoForm.completionDate),
+      status: todoForm.status,
+    };
+    // ToDo登録APIを呼び出す
+    await fetch("/api/todo_lists", {
+      method: "POST",
+      body: JSON.stringify(params),
+    })
+      .then(async (r) => {
+        console.log(r);
+        const newTodo: TodoType = await r.json();
+        setTodoList((prev) => [newTodo, ...prev]);
+        setTodoForm(defaultTodoFormValue);
+        createdToast({
+          title: "タスクが登録されました。",
+          description: "",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+        createdToast({
+          title: "タスクの登録に失敗しました。",
+          description: "",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+      });
+  };
+
+  // ToDoを更新するメソッド
+  const updateTodo = async (): Promise<void> => {
+    // ToDo更新APIに渡すパラメータに入力した値を設定
+    const params = {
+      title: todoForm.title,
+      description: todoForm.description,
+      completionDate: new Date(todoForm.completionDate),
+      status: todoForm.status,
+    };
+    // ToDo更新APIを呼び出す
+    await fetch(`/api/todo_lists/${todoForm.id}`, {
+      method: "PUT",
+      body: JSON.stringify(params),
+    })
+      .then(async (r) => {
+        console.log(r);
+        const targetTodo: TodoType = await r.json();
+        setTodoList((prev) => {
+          const index =  prev.findIndex((todo) => todo.id === targetTodo.id);
+          const convertedTodoList = prev.toSpliced(index, 1, targetTodo);
+          return convertedTodoList;
+        });
+        setTodoForm(defaultTodoFormValue);
+        setIsRegister(true);
+        createdToast({
+          title: "タスクが更新されました。",
+          description: "",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+        createdToast({
+          title: "タスクの更新に失敗しました。",
+          description: "",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+      });
+  };
+
+  // 更新対象のToDoを入力欄に表示させる
+  const editTodo = async (todoId:number): Promise<void> => {
+    const targetTodo = await fetchTargetTodo(todoId);
+    setTodoForm({
+      id: targetTodo.id,
+      title: targetTodo.title,
+      description: targetTodo.description,
+      completionDate: getFormattedDate(new Date(targetTodo.completionDate)),
+      status: targetTodo.status,
+    });
+    setIsRegister(false);
+  };
+
   const convertedStatusBadge = (status: string): JSX.Element => {
-    switch(status) {
+    switch (status) {
       case "todo":
         return (
           <HStack>
-            <CircleIcon boxSize="3" color="gray.400"/>
+            <CircleIcon boxSize="3" color="gray.400" />
             <Text className="uppercase">{status}</Text>
           </HStack>
         );
       case "inProgress":
         return (
           <HStack>
-            <CircleIcon boxSize="3" color="red.400"/>
+            <CircleIcon boxSize="3" color="red.400" />
             <Text className="uppercase">{status}</Text>
           </HStack>
         );
       case "done":
         return (
           <HStack>
-            <CircleIcon boxSize="3" color="green.400"/>
+            <CircleIcon boxSize="3" color="green.400" />
             <Text className="uppercase">{status}</Text>
           </HStack>
         );
@@ -111,37 +235,80 @@ export default function TodoListPage(): JSX.Element {
       <Header />
       <div className="px-8 bg-main-bg-color">
         <Flex>
-          <div className="w-96 pt-8 pr-8 border-r border-solid border-r-border-gray">
+          <div className="w-1/3 pt-8 pr-8 border-r border-solid border-r-border-gray">
             <FormControl>
               <FormLabel className="font-bold">タスク名</FormLabel>
-              <Input className="!bg-white" type="text"></Input>
+              <Input
+                className="!bg-white"
+                type="text"
+                isRequired
+                value={todoForm.title}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
+                }
+              ></Input>
             </FormControl>
             <FormControl>
               <FormLabel className="font-bold">説明</FormLabel>
-              <Textarea className="!bg-white"></Textarea>
+              <Textarea
+                className="!bg-white"
+                value={todoForm.description}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              ></Textarea>
             </FormControl>
             <FormControl>
               <FormLabel className="font-bold">期日</FormLabel>
-              <Input className="!bg-white" type="date"></Input>
+              <Input
+                className="!bg-white"
+                type="date"
+                isRequired
+                value={todoForm.completionDate}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    completionDate: e.target.value,
+                  }))
+                }
+              ></Input>
             </FormControl>
             <FormControl>
               <FormLabel className="font-bold">ステータス</FormLabel>
-              <Select className="!bg-white">
+              <Select
+                className="!bg-white"
+                value={todoForm.status}
+                isRequired
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    status: e.target.value as TodoStatusType,
+                  }))
+                }
+              >
                 <option value="todo">TODO</option>
                 <option value="inProgress">INPROGRESS</option>
                 <option value="done">DONE</option>
               </Select>
             </FormControl>
             <Button
-              onClick={() => {}}
-              className="mb-4 mt-8 w-80"
+              onClick={async () => {
+                isRegister ? await registerTodo() : await updateTodo()
+              }}
+              className="mb-4 mt-8 w-full"
               bg="mainColor"
               color="white"
             >
-              登録
+              {isRegister ? "登録" : "更新"}
             </Button>
           </div>
-          <div className="w-full px-8 pt-8 flex justify-center">
+          <div className="w-2/3 px-8 pt-8 flex justify-center">
             <TableContainer>
               <Table>
                 <Thead>
@@ -161,7 +328,7 @@ export default function TodoListPage(): JSX.Element {
                         <Text>{todo.title}</Text>
                       </Td>
                       <Td className="!py-2">
-                          {convertedStatusBadge(todo.status)}
+                        {convertedStatusBadge(todo.status)}
                       </Td>
                       <Td className="!py-2">
                         <Text>
@@ -175,12 +342,15 @@ export default function TodoListPage(): JSX.Element {
                       </Td>
                       <Td className="!py-2">
                         <IconButton
+                          variant="unstyled"
                           aria-label="Search database"
                           icon={<EditIcon />}
+                          onClick={async () => await editTodo(todo.id)}
                         />
                       </Td>
                       <Td className="!py-2">
                         <IconButton
+                          variant="unstyled"
                           aria-label="Search database"
                           icon={<DeleteIcon />}
                         />
