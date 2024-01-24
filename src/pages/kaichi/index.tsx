@@ -9,7 +9,7 @@ import {
   Button,
   // ButtonGroup,
   Input,
-  useToast,
+  // useToast,
   Textarea,
   Select,
   Table,
@@ -89,7 +89,7 @@ export default function TodoListPage(): JSX.Element {
       setTodoList((prev) => [newTodo, ...prev]);
       setTodoForm(defaultFormValue);
       console.log(newTodo);
-    })
+    });
   };
 
   return (
@@ -100,14 +100,16 @@ export default function TodoListPage(): JSX.Element {
           <div className="flex-1">
             <FormControl>
               <FormLabel>タスク名</FormLabel>
-              <Input type="text"
+              <Input
+                type="text"
                 value={todoForm.title}
                 onChange={(e) =>
                   setTodoForm((prev) => ({
                     ...prev,
                     title: e.target.value,
                   }))
-                } />
+                }
+              />
             </FormControl>
             <FormControl>
               <FormLabel>説明</FormLabel>
@@ -118,39 +120,43 @@ export default function TodoListPage(): JSX.Element {
                     ...prev,
                     description: e.target.value,
                   }))
-                } />
+                }
+              />
             </FormControl>
             <FormControl>
               <FormLabel>期日</FormLabel>
-              <Input type="date"
+              <Input
+                type="date"
                 value={todoForm.completionDate}
                 onChange={(e) =>
                   setTodoForm((prev) => ({
                     ...prev,
                     completionDate: e.target.value,
                   }))
-                } />
+                }
+              />
             </FormControl>
             <FormControl>
               <FormLabel>ステータス</FormLabel>
               <Select
-              value={todoForm.status}
-              onChange={(e) =>
-                setTodoForm((prev) => ({
-                  ...prev,
-                  status: e.target.value,
-                }))
-              } >
+                value={todoForm.status}
+                onChange={(e) =>
+                  setTodoForm((prev) => ({
+                    ...prev,
+                    status: e.target.value,
+                  }))
+                }
+              >
                 <option>todo</option>
                 <option>inProgress</option>
                 <option>done</option>
               </Select>
             </FormControl>
             <Button
-              colorScheme='blue'
-              onClick={async () =>
-                registerTodo()}
-            >登録
+              colorScheme="blue"
+              onClick={async () => await registerTodo()}
+            >
+              登録
             </Button>
           </div>
           <div className="flex-1">
