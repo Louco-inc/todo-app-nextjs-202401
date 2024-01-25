@@ -2,6 +2,12 @@ import Header from "@/components/header";
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
   Button,
   FormControl,
   FormLabel,
@@ -20,9 +26,10 @@ import {
   Text,
   Textarea,
   Select,
+  useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type TodoStatusType = "todo" | "inProgress" | "done";
 
@@ -78,7 +85,19 @@ const CircleIcon = (props: IconPropsType): JSX.Element => (
 export default function TodoListPage(): JSX.Element {
   const [todoList, setTodoList] = useState<TodoType[]>([]);
   const [todoForm, setTodoForm] = useState<TodoFormType>(defaultTodoFormValue);
+  const [targetTodoId, setTargetTodoId] = useState<number | undefined>(
+    undefined
+  );
+  const [targetTodoTitle, setTargetTodoTitle] = useState<string | undefined>(
+    undefined
+  );
   const [isRegister, setIsRegister] = useState<boolean>(true);
+  const {
+    isOpen: isOpenDeleteDialog,
+    onOpen: onOpenDeleteDialog,
+    onClose: onCloseDeleteDialog,
+  } = useDisclosure();
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const createdToast = useToast();
 
   useEffect(() => {
@@ -97,7 +116,7 @@ export default function TodoListPage(): JSX.Element {
 
   const fetchTargetTodo = async (todoId: number): Promise<TodoType> => {
     const targetTodo: TodoType = await fetch(`/api/todo_lists/${todoId}`).then(
-      async (r) => await r.json(),
+      async (r) => await r.json()
     );
     return targetTodo;
   };
@@ -161,7 +180,7 @@ export default function TodoListPage(): JSX.Element {
         console.log(r);
         const targetTodo: TodoType = await r.json();
         setTodoList((prev) => {
-          const index =  prev.findIndex((todo) => todo.id === targetTodo.id);
+          const index = prev.findIndex((todo) => todo.id === targetTodo.id);
           const convertedTodoList = prev.toSpliced(index, 1, targetTodo);
           return convertedTodoList;
         });
@@ -189,8 +208,11 @@ export default function TodoListPage(): JSX.Element {
       });
   };
 
+  // Todoを削除するメソッド
+  const deleteTodo = async (todoId: number | undefined): Promise<void> => {};
+
   // 更新対象のToDoを入力欄に表示させる
-  const editTodo = async (todoId:number): Promise<void> => {
+  const editTodo = async (todoId: number): Promise<void> => {
     const targetTodo = await fetchTargetTodo(todoId);
     setTodoForm({
       id: targetTodo.id,
@@ -299,7 +321,7 @@ export default function TodoListPage(): JSX.Element {
             </FormControl>
             <Button
               onClick={async () => {
-                isRegister ? await registerTodo() : await updateTodo()
+                isRegister ? await registerTodo() : await updateTodo();
               }}
               className="mb-4 mt-8 w-full"
               bg="mainColor"
@@ -310,15 +332,18 @@ export default function TodoListPage(): JSX.Element {
           </div>
           <div className="w-2/3 px-8 pt-8 flex justify-center">
             <TableContainer>
-              <Table>
+              <Table
+                variant="simple"
+                className="table-fixed !border-separate	border-spacing-x-0 border-spacing-y-2"
+              >
                 <Thead>
                   <Tr>
-                    <Th>タスク名</Th>
-                    <Th>ステータス</Th>
-                    <Th>期日</Th>
-                    <Th>更新日</Th>
-                    <Th></Th>
-                    <Th></Th>
+                    <Th className="w-4/12 !normal-case">タスク名</Th>
+                    <Th className="!normal-case">ステータス</Th>
+                    <Th className="!normal-case">期日</Th>
+                    <Th className="!normal-case">更新日</Th>
+                    <Th className="w-1/12"></Th>
+                    <Th className="w-1/12"></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -353,6 +378,11 @@ export default function TodoListPage(): JSX.Element {
                           variant="unstyled"
                           aria-label="Search database"
                           icon={<DeleteIcon />}
+                          onClick={() => {
+                            setTargetTodoId(todo.id);
+                            setTargetTodoTitle(todo.title);
+                            onOpenDeleteDialog();
+                          }}
                         />
                       </Td>
                     </Tr>
@@ -363,6 +393,41 @@ export default function TodoListPage(): JSX.Element {
           </div>
         </Flex>
       </div>
+      <AlertDialog
+        isOpen={isOpenDeleteDialog}
+        leastDestructiveRef={cancelRef}
+        onClose={onCloseDeleteDialog}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              タスクの削除
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              <Text>以下のタスクを削除します。</Text>
+              <Text>削除すると元に戻りません。よろしいですか？</Text>
+              <Text className="mt-5">タスク名：{targetTodoTitle}</Text>
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onCloseDeleteDialog}>
+                キャンセル
+              </Button>
+              <Button
+                colorScheme="red"
+                onClick={async () => {
+                  await deleteTodo(targetTodoId);
+                  onCloseDeleteDialog();
+                }}
+                ml={3}
+              >
+                削除
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </>
   );
 }
