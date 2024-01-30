@@ -327,9 +327,9 @@ export default function TodoListPage(): JSX.Element {
               isRequired
               onChange={(e) =>
                 setTodoForm(
-                  (prev): TodoFormType => ({
+                  (prev): InputType => ({
                     ...prev,
-                    status: e.target.value as TodoStatusType,
+                    status: e.target.value,
                   })
                 )
               }
