@@ -45,7 +45,7 @@ type InputType = {
   status: string;
 };
 
-//Todo: idがInputとTodoTypeで2重になっている箇所を修正したい
+// Todo: idがInputとTodoTypeで2重になっている箇所を修正したい
 type TodoType = InputType & {
   id: number;
   createdAt: string;
