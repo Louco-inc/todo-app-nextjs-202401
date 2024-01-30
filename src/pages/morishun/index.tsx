@@ -9,13 +9,21 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   Button,
+  Divider,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Flex,
   Input,
   Icon,
   IconButton,
   HStack,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
   Table,
   Thead,
   Tbody,
@@ -71,6 +79,14 @@ const defaultTodoFormValue: TodoFormType = {
   status: "todo",
 };
 
+const defaultTodoDetailValue: TodoType = {
+  id: 0,
+  title: "",
+  completionDate: getFormattedDate(new Date()),
+  status: "todo",
+  updatedAt: getFormattedDate(new Date()),
+};
+
 // ステータス横に表示するバッチのアイコンのコンポーネントを作成
 // 参考：https://chakra-ui.com/docs/components/icon/usage#using-the-icon-component
 const CircleIcon = (props: IconPropsType): JSX.Element => (
@@ -85,6 +101,9 @@ const CircleIcon = (props: IconPropsType): JSX.Element => (
 export default function TodoListPage(): JSX.Element {
   const [todoList, setTodoList] = useState<TodoType[]>([]);
   const [todoForm, setTodoForm] = useState<TodoFormType>(defaultTodoFormValue);
+  const [todoDetail, setTodoDetail] = useState<TodoType>(
+    defaultTodoDetailValue
+  );
   const [targetTodoId, setTargetTodoId] = useState<number | undefined>(
     undefined
   );
@@ -92,6 +111,12 @@ export default function TodoListPage(): JSX.Element {
     undefined
   );
   const [isRegister, setIsRegister] = useState<boolean>(true);
+  const [isTitleEmpty, setIsTitleEmpty] = useState<boolean>(false);
+  const {
+    isOpen: isOpenDetailModal,
+    onOpen: onOpenDetailModal,
+    onClose: onCloseDetailModal,
+  } = useDisclosure();
   const {
     isOpen: isOpenDeleteDialog,
     onOpen: onOpenDeleteDialog,
@@ -123,6 +148,14 @@ export default function TodoListPage(): JSX.Element {
 
   // Todoを登録するメソッド
   const registerTodo = async (): Promise<void> => {
+    if(todoForm.title === ""){
+      setIsTitleEmpty(true);
+      console.log(isTitleEmpty);
+      return;
+    } else {
+      setIsTitleEmpty(false);
+      console.log(isTitleEmpty);
+    }
     // ToDo登録APIに渡すパラメータに入力した値を設定
     const params = {
       title: todoForm.title,
@@ -164,6 +197,14 @@ export default function TodoListPage(): JSX.Element {
 
   // ToDoを更新するメソッド
   const updateTodo = async (): Promise<void> => {
+    if(todoForm.title === ""){
+      setIsTitleEmpty(true);
+      console.log(isTitleEmpty);
+      return;
+    } else {
+      setIsTitleEmpty(false);
+      console.log(isTitleEmpty);
+    }
     // ToDo更新APIに渡すパラメータに入力した値を設定
     const params = {
       title: todoForm.title,
@@ -209,7 +250,34 @@ export default function TodoListPage(): JSX.Element {
   };
 
   // Todoを削除するメソッド
-  const deleteTodo = async (todoId: number | undefined): Promise<void> => {};
+  const deleteTodo = async (todoId: number | undefined): Promise<void> => {
+    const res = await fetch(`/api/todo_lists/${todoId}`, {
+      method: "DELETE",
+      body: JSON.stringify({ id: todoId }),
+    });
+    console.log(res);
+    if (res.status === 200) {
+      setTodoList((prev) => prev.filter((todo) => todo.id !== todoId));
+      createdToast({
+        title: "タイトルが削除されました。",
+        description: "",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+    } else {
+      console.log(res.status);
+      createdToast({
+        title: "タイトルの削除に失敗しました。",
+        description: "",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+    }
+  };
 
   // 更新対象のToDoを入力欄に表示させる
   const editTodo = async (todoId: number): Promise<void> => {
@@ -221,10 +289,18 @@ export default function TodoListPage(): JSX.Element {
       completionDate: getFormattedDate(new Date(targetTodo.completionDate)),
       status: targetTodo.status,
     });
+    setIsTitleEmpty(false);
     setIsRegister(false);
   };
 
-  const convertedStatusBadge = (status: string): JSX.Element => {
+  // Todoの詳細モーダルを表示させるメソッド
+  const openTodoDetail = async (todoId: number): Promise<void> => {
+    const targetTodo = await fetchTargetTodo(todoId);
+    setTodoDetail(targetTodo);
+    onOpenDetailModal();
+  };
+
+  const convertedStatusBadge = (status: string | undefined): JSX.Element => {
     switch (status) {
       case "todo":
         return (
@@ -258,7 +334,7 @@ export default function TodoListPage(): JSX.Element {
       <div className="px-8 bg-main-bg-color">
         <Flex>
           <div className="w-1/3 pt-8 pr-8 border-r border-solid border-r-border-gray">
-            <FormControl>
+            <FormControl isInvalid={isTitleEmpty}>
               <FormLabel className="font-bold">タスク名</FormLabel>
               <Input
                 className="!bg-white"
@@ -272,6 +348,7 @@ export default function TodoListPage(): JSX.Element {
                   }))
                 }
               ></Input>
+              {isTitleEmpty ? <FormErrorMessage>※タスク名が入力されていません。</FormErrorMessage> : <></>}
             </FormControl>
             <FormControl>
               <FormLabel className="font-bold">説明</FormLabel>
@@ -349,8 +426,14 @@ export default function TodoListPage(): JSX.Element {
                 <Tbody>
                   {todoList.map((todo) => (
                     <Tr key={"todo-item-" + todo.id} className="bg-white">
-                      <Td className="!py-2">
-                        <Text>{todo.title}</Text>
+                      <Td className="w-4/12 !py-2">
+                        <Button
+                          colorScheme="gray"
+                          variant="link"
+                          onClick={async () => await openTodoDetail(todo.id)}
+                        >
+                          <Text className="w-52 truncate text-left">{todo.title}</Text>
+                        </Button>
                       </Td>
                       <Td className="!py-2">
                         {convertedStatusBadge(todo.status)}
@@ -365,7 +448,7 @@ export default function TodoListPage(): JSX.Element {
                           {getFormattedDate(new Date(todo.updatedAt))}
                         </Text>
                       </Td>
-                      <Td className="!py-2">
+                      <Td className="w-1/12 !py-2">
                         <IconButton
                           variant="unstyled"
                           aria-label="Search database"
@@ -373,7 +456,7 @@ export default function TodoListPage(): JSX.Element {
                           onClick={async () => await editTodo(todo.id)}
                         />
                       </Td>
-                      <Td className="!py-2">
+                      <Td className="w-1/12 !py-2">
                         <IconButton
                           variant="unstyled"
                           aria-label="Search database"
@@ -393,10 +476,61 @@ export default function TodoListPage(): JSX.Element {
           </div>
         </Flex>
       </div>
+      <Modal onClose={onCloseDetailModal} size="xl" isOpen={isOpenDetailModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <HStack className="absolute top-0 right-0">
+            <IconButton
+              variant="unstyled"
+              aria-label="Search database"
+              icon={<EditIcon />}
+              onClick={async () => {
+                onCloseDetailModal();
+                await editTodo(todoDetail?.id);
+              }}
+            />
+            <IconButton
+              variant="unstyled"
+              aria-label="Search database"
+              icon={<DeleteIcon />}
+              onClick={() => {
+                setTargetTodoId(todoDetail.id);
+                setTargetTodoTitle(todoDetail.title);
+                onOpenDeleteDialog();
+              }}
+            />
+          </HStack>
+          <ModalHeader className="mt-7">{todoDetail?.title}</ModalHeader>
+          <Divider />
+          <ModalBody>
+            <Text className="m-3 whitespace-pre-line">{todoDetail?.description}</Text>
+            <Table>
+              <Tr>
+                <Th>ステータス</Th>
+                <Td>{convertedStatusBadge(todoDetail?.status)}</Td>
+              </Tr>
+              <Tr>
+                <Th>期日</Th>
+                <Td>
+                  {getFormattedDate(new Date(todoDetail?.completionDate))}
+                </Td>
+              </Tr>
+              <Tr>
+                <Th>更新日</Th>
+                <Td>{getFormattedDate(new Date(todoDetail?.updatedAt))}</Td>
+              </Tr>
+            </Table>
+          </ModalBody>
+          <ModalFooter>
+            <Button className = "mx-auto" onClick={onCloseDetailModal}>閉じる</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       <AlertDialog
         isOpen={isOpenDeleteDialog}
         leastDestructiveRef={cancelRef}
         onClose={onCloseDeleteDialog}
+        isCentered
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
@@ -417,6 +551,9 @@ export default function TodoListPage(): JSX.Element {
               <Button
                 colorScheme="red"
                 onClick={async () => {
+                  if(isOpenDetailModal){
+                    onCloseDetailModal();
+                  }
                   await deleteTodo(targetTodoId);
                   onCloseDeleteDialog();
                 }}
