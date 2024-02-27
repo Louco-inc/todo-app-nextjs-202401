@@ -97,13 +97,25 @@ export default function TodoListPage(): JSX.Element {
     );
     return targetTodo;
   };
-  
+
   const openTodoDetail = async (todoId: number): Promise<void> => {
     const targetTodo = await fetchTargetTodo(todoId);
     console.log(targetTodo);
+    setTodoDetail(targetTodo);
+    onOpenDetailModal();
   };
 
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const {
+    isOpen: isOpenDetailModal,
+    onOpen: onOpenDetailModal,
+    onClose: onCloseDetailModal,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenDeleteDialog,
+    onOpen: onOpenDeleteDialog,
+    onClose: onCloseDeleteDialog,
+  } = useDisclosure();
+
 
   const registerTodo = async (): Promise<void> => {
     const params = {
@@ -133,9 +145,9 @@ export default function TodoListPage(): JSX.Element {
           className="!min-w-0 !min-h-0"
           aria-label="Search database"
           icon={<AddIcon />}
-          onClick={onOpen}
+          onClick={onOpenDeleteDialog}
         />
-        <Modal blockScrollOnMount={false} isOpen={isOpen} onClose={onClose}>
+        <Modal blockScrollOnMount={false} isOpen={isOpenDeleteDialog} onClose={onCloseDeleteDialog}>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>新規</ModalHeader>
@@ -197,7 +209,7 @@ export default function TodoListPage(): JSX.Element {
               </FormControl>
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme='blue' mr={3} onClick={onClose}>
+              <Button colorScheme='blue' mr={3} onClick={onCloseDeleteDialog}>
                 Close
               </Button>
               <Button
@@ -225,7 +237,7 @@ export default function TodoListPage(): JSX.Element {
                     if (item.status == "todo") {
                       return (
                         <Tr key={item.id}>
-                          <Th>{item.title}</Th>
+                          <Th onClick={async () => await openTodoDetail(item.id)}>{item.title}</Th>
                           <Th>{item.status}</Th>
                         </Tr>
                       );
@@ -246,11 +258,11 @@ export default function TodoListPage(): JSX.Element {
                   </Tr>
                 </Thead>
                 <Tbody>
-                {todoList.map((item) => {
+                  {todoList.map((item) => {
                     if (item.status == "inProgress") {
                       return (
                         <Tr key={item.id}>
-                          <Th>{item.title}</Th>
+                          <Th onClick={async () => await openTodoDetail(item.id)}>{item.title}</Th>
                           <Th>{item.status}</Th>
                         </Tr>
                       );
@@ -271,7 +283,7 @@ export default function TodoListPage(): JSX.Element {
                   </Tr>
                 </Thead>
                 <Tbody>
-                {todoList.map((item) => {
+                  {todoList.map((item) => {
                     if (item.status == "done") {
                       return (
                         <Tr key={item.id}>
@@ -287,6 +299,21 @@ export default function TodoListPage(): JSX.Element {
           </GridItem>
         </Grid>
       </div>
+      <Modal isOpen={isOpenDetailModal} onClose={onCloseDetailModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{todoDetail?.title}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+          {todoDetail?.status}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={onCloseDetailModal}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
