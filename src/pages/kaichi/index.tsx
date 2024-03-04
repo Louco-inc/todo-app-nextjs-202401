@@ -105,6 +105,13 @@ export default function TodoListPage(): JSX.Element {
     onOpenDetailModal();
   };
 
+  const editTodoDetail = async (todoId: number): Promise<void> => {
+    const targetTodo = await fetchTargetTodo(todoId);
+    console.log(targetTodo);
+    setTodoDetail(targetTodo);
+    onOpenEditlModal();
+  };
+
   const {
     isOpen: isOpenDetailModal,
     onOpen: onOpenDetailModal,
@@ -114,6 +121,11 @@ export default function TodoListPage(): JSX.Element {
     isOpen: isOpenDeleteDialog,
     onOpen: onOpenDeleteDialog,
     onClose: onCloseDeleteDialog,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenEditModal,
+    onOpen: onOpenEditlModal,
+    onClose: onCloseEditlModal,
   } = useDisclosure();
 
 
@@ -279,7 +291,7 @@ export default function TodoListPage(): JSX.Element {
                 <Thead>
                   <Tr>
                     <Th>タスク名</Th>
-                    <Th>ステータス</Th>
+                    <Th>編集</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -288,7 +300,15 @@ export default function TodoListPage(): JSX.Element {
                       return (
                         <Tr key={item.id}>
                           <Th onClick={async () => await openTodoDetail(item.id)}>{item.title}</Th>
-                          <Th>{item.status}</Th>
+                          <Th>
+                            <IconButton
+                              variant="unstyled"
+                              className="!min-w-0 !min-h-0"
+                              aria-label="Search database"
+                              icon={<EditIcon />}
+                              onClick={async () => await editTodoDetail(item.id)}
+                            />
+                          </Th>
                         </Tr>
                       );
                     }
@@ -313,6 +333,80 @@ export default function TodoListPage(): JSX.Element {
             </Button>
           </ModalFooter>
         </ModalContent>
+      </Modal>
+      <Modal blockScrollOnMount={false} isOpen={isOpenEditModal} onClose={onCloseEditlModal}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>編集</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <FormControl>
+                <FormLabel>タスク名</FormLabel>
+                <Input
+                  type="text"
+                  value={todoForm.title}
+                  onChange={(e) =>
+                    setTodoForm((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>説明</FormLabel>
+                <Textarea
+                  value={todoForm.description}
+                  onChange={(e) =>
+                    setTodoForm((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>期日</FormLabel>
+                <Input
+                  type="date"
+                  value={todoForm.completionDate}
+                  onChange={(e) =>
+                    setTodoForm((prev) => ({
+                      ...prev,
+                      completionDate: e.target.value,
+                    }))
+                  }
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>ステータス</FormLabel>
+                <Select
+                  value={todoForm.status}
+                  onChange={(e) =>
+                    setTodoForm((prev) => ({
+                      ...prev,
+                      status: e.target.value,
+                    }))
+                  }
+                >
+                  <option>todo</option>
+                  <option>inProgress</option>
+                  <option>done</option>
+                </Select>
+              </FormControl>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme='blue' mr={3} onClick={onCloseEditlModal}>
+                Close
+              </Button>
+              <Button
+                colorScheme="blue"
+                onClick={async () => await registerTodo()}
+              >
+                編集
+              </Button>
+            </ModalFooter>
+          </ModalContent>
       </Modal>
     </>
   );
