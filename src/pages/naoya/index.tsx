@@ -1,4 +1,5 @@
 import Header from "@/components/header";
+import { useTodoReducer } from "@/hooks/useTodoReducer";
 import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   useDisclosure,
@@ -32,9 +33,9 @@ import {
   Tr,
   Text,
 } from "@chakra-ui/react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useReducer } from "react";
 
-type TodoStatusType = "todo" | "inProgress" | "done"
+type TodoStatusType = "todo" | "inProgress" | "done";
 
 type TodoFormType = {
   id?: number;
@@ -44,7 +45,7 @@ type TodoFormType = {
   status: TodoStatusType;
 };
 
-type TodoType = TodoFormType & {
+export type TodoType = TodoFormType & {
   id: number;
   createdAt?: string;
   updatedAt: string;
@@ -65,10 +66,10 @@ const defaultFormValue: TodoFormType = {
 };
 
 export default function TodoListPage(): JSX.Element {
-  const [todoList, setTodoList] = useState<TodoType[]>([]);
+  const [todoList, dispatch] = useReducer(useTodoReducer, []);
   const [todoForm, setTodoForm] = useState<TodoFormType>(defaultFormValue);
   const [targetTodoId, setTargetTodoId] = useState<number | undefined>(
-    undefined,
+    undefined
   );
   const [isRegister, setIsRegister] = useState<boolean>(true);
   const [todoDetail, setTodoDetail] = useState<TodoType>();
@@ -95,14 +96,14 @@ export default function TodoListPage(): JSX.Element {
 
   const fetchTodoList = async (): Promise<void> => {
     const lists: TodoType[] = await fetch("/api/todo_lists").then(
-      async (r) => await r.json(),
+      async (r) => await r.json()
     );
-    setTodoList(lists);
+    dispatch({ type: "init", targetList: lists });
   };
 
   const fetchTargetTodo = async (todoId: number): Promise<TodoType> => {
     const targetTodo = await fetch(`/api/todo_lists/${todoId}`).then(
-      async (r) => await r.json(),
+      async (r) => await r.json()
     );
     return targetTodo;
   };
@@ -149,7 +150,7 @@ export default function TodoListPage(): JSX.Element {
     })
       .then(async (r) => {
         const newTodo: TodoType = await r.json();
-        setTodoList((prev) => [newTodo, ...prev]);
+        dispatch({ type: "create", target: newTodo });
         setTodoForm(defaultFormValue);
         createdToast({
           title: "タスクが登録されました。",
@@ -188,11 +189,7 @@ export default function TodoListPage(): JSX.Element {
     })
       .then(async (r) => {
         const targetTodo: TodoType = await r.json();
-        setTodoList((prev) => {
-          const index = prev.findIndex((todo) => todo.id === targetTodo.id);
-          const convertedTodoList = prev.toSpliced(index, 1, targetTodo);
-          return convertedTodoList;
-        });
+        dispatch({ type: "update", target: targetTodo });
         setTodoForm(defaultFormValue);
         setIsRegister(true);
         createdToast({
@@ -225,7 +222,7 @@ export default function TodoListPage(): JSX.Element {
       body: JSON.stringify({ id: todoId }),
     });
     if (res.status === 200) {
-      setTodoList((prev) => prev.filter((todo) => todo.id !== todoId));
+      dispatch({ type: "delete", targetId: todoId });
       createdToast({
         title: "タスクが削除されました",
         description: "",
@@ -344,10 +341,12 @@ export default function TodoListPage(): JSX.Element {
                 value={todoForm.status}
                 isRequired
                 onChange={(e) =>
-                  setTodoForm((prev): TodoFormType => ({
-                    ...prev,
-                    status: e.target.value as TodoStatusType,
-                  }))
+                  setTodoForm(
+                    (prev): TodoFormType => ({
+                      ...prev,
+                      status: e.target.value as TodoStatusType,
+                    })
+                  )
                 }
               >
                 <option value="todo">todo</option>
@@ -492,7 +491,7 @@ export default function TodoListPage(): JSX.Element {
                       title: todoDetail?.title ?? "",
                       description: todoDetail?.description,
                       completionDate: formattedDate(
-                        new Date(todoDetail?.completionDate ?? ""),
+                        new Date(todoDetail?.completionDate ?? "")
                       ),
                       status: todoDetail?.status ?? "todo",
                     });
