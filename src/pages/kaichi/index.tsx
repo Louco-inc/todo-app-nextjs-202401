@@ -105,6 +105,20 @@ export default function TodoListPage(): JSX.Element {
     onOpenDetailModal();
   };
 
+  const editTodo = async (todoId: number): Promise<void> => {}
+
+  const deleteTodo = async (todoId: number | undefined): Promise<void> => {
+    const res = await fetch(`/api/todo_lists/${todoId}`, {
+      method: "DELETE",
+      body: JSON.stringify({ id: todoId }),
+    });
+    if (res.status === 200) {
+      setTodoList((prev) => prev.filter((todo) => todo.id !== todoId));
+    } else {
+      console.log("タスクの削除に失敗しました。");
+    }
+  };
+
   const {
     isOpen: isOpenDetailModal,
     onOpen: onOpenDetailModal,
@@ -115,7 +129,6 @@ export default function TodoListPage(): JSX.Element {
     onOpen: onOpenDeleteDialog,
     onClose: onCloseDeleteDialog,
   } = useDisclosure();
-
 
   const registerTodo = async (): Promise<void> => {
     const params = {
@@ -229,7 +242,7 @@ export default function TodoListPage(): JSX.Element {
                 <Thead>
                   <Tr>
                     <Th>タスク名</Th>
-                    <Th>ステータス</Th>
+                    <Th>編集</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -238,8 +251,15 @@ export default function TodoListPage(): JSX.Element {
                       return (
                         <Tr key={item.id}>
                           <Th onClick={async () => await openTodoDetail(item.id)}>{item.title}</Th>
-                          <Th>{item.status}</Th>
-                        </Tr>
+                          <Th>
+                            <IconButton
+                              variant="unstyled"
+                              className="!min-w-0 !min-h-0"
+                              aria-label="Search database"
+                              icon={<EditIcon />}
+                              onClick={async () => await editTodo(item.id)}
+                            /></Th>                        
+                          </Tr>
                       );
                     }
                   })}
@@ -254,7 +274,7 @@ export default function TodoListPage(): JSX.Element {
                 <Thead>
                   <Tr>
                     <Th>タスク名</Th>
-                    <Th>ステータス</Th>
+                    <Th>編集</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -263,8 +283,15 @@ export default function TodoListPage(): JSX.Element {
                       return (
                         <Tr key={item.id}>
                           <Th onClick={async () => await openTodoDetail(item.id)}>{item.title}</Th>
-                          <Th>{item.status}</Th>
-                        </Tr>
+                          <Th>
+                            <IconButton
+                              variant="unstyled"
+                              className="!min-w-0 !min-h-0"
+                              aria-label="Search database"
+                              icon={<EditIcon />}
+                              onClick={async () => await editTodo(item.id)}
+                            /></Th>                        
+                          </Tr>
                       );
                     }
                   })}
@@ -279,7 +306,7 @@ export default function TodoListPage(): JSX.Element {
                 <Thead>
                   <Tr>
                     <Th>タスク名</Th>
-                    <Th>ステータス</Th>
+                    <Th>編集</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -288,7 +315,14 @@ export default function TodoListPage(): JSX.Element {
                       return (
                         <Tr key={item.id}>
                           <Th onClick={async () => await openTodoDetail(item.id)}>{item.title}</Th>
-                          <Th>{item.status}</Th>
+                          <Th>
+                            <IconButton
+                              variant="unstyled"
+                              className="!min-w-0 !min-h-0"
+                              aria-label="Search database"
+                              icon={<EditIcon />}
+                              onClick={async () => await editTodo(item.id)}
+                            /></Th>
                         </Tr>
                       );
                     }
@@ -305,11 +339,14 @@ export default function TodoListPage(): JSX.Element {
           <ModalHeader>{todoDetail?.title}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-          {todoDetail?.status}
+            {todoDetail?.status}
           </ModalBody>
           <ModalFooter>
             <Button colorScheme='blue' mr={3} onClick={onCloseDetailModal}>
               Close
+            </Button>
+            <Button colorScheme='blue' mr={3} onClick={async () => await deleteTodo(todoDetail?.id)}>
+              Delete
             </Button>
           </ModalFooter>
         </ModalContent>
